@@ -14,7 +14,6 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
-import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -94,7 +93,6 @@ public class PaymentService {
 
     private void createPayment(OrderInfoDTO orderInfo){
         Payment payment = new Payment();
-        payment.setId(ObjectId.get());
         payment.setOrderIdentifier(orderInfo.getOrderIdentifier());
         payment.setPaymentStatus(PaymentStatus.AWAITING.name());
         payment.setTitle(orderInfo.getTitle());
