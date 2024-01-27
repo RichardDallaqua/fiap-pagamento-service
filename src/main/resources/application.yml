@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    url: ${URL_BD:jdbc:postgresql://localhost:5432/postgres?currentSchema=sch_payments}
+    username: postgres
+    password: 123
+
+server:
+  port: 9090
+  servlet:
+    context-path: /fiap-payments
+

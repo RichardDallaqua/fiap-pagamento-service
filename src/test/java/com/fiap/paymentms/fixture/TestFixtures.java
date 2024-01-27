@@ -3,7 +3,6 @@ package com.fiap.paymentms.fixture;
 import com.fiap.paymentms.model.dto.OrderInfoDTO;
 import com.fiap.paymentms.model.entities.Payment;
 import com.fiap.paymentms.model.enumerated.PaymentStatus;
-import org.bson.types.ObjectId;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -19,7 +18,7 @@ public class TestFixtures {
 
     public static Payment paymentFixture(){
         Payment payment = new Payment();
-        payment.setId(ObjectId.get());
+        payment.setId(1L);
         payment.setItems(Arrays.asList("refrigerante", "hamburguer"));
         payment.setPaymentStatus(PaymentStatus.SUCCESS.name());
         payment.setTotalAmount(BigDecimal.TEN);
