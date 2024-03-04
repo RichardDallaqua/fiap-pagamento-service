@@ -57,7 +57,7 @@ class PaymentServiceTest {
     @Test
     void shouldUpdatePaymentStatus() {
         when(paymentRepository.findByOrderIdentifier(any())).thenReturn(Optional.of(TestFixtures.paymentFixture()));
-        when(paymentRepository.save(any())).thenReturn(TestFixtures.paymentFixture());
+        //when(paymentRepository.save(any())).thenReturn(TestFixtures.paymentFixture());
         paymentService.updatePaymentStatus(TestFixtures.generateOrderInfoDTO().getOrderIdentifier(), PaymentStatus.AWAITING);
     }
 

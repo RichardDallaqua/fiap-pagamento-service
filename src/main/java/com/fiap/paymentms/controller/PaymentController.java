@@ -22,18 +22,8 @@ public class PaymentController {
     @Autowired
     private PaymentService paymentService;
 
-    @PostMapping("/generate/qr-code")
-    public ResponseEntity<byte[]> generateQrCode(@RequestBody OrderInfoDTO orderInfo){
-        return ResponseEntity.status(201).body(paymentService.generateQrCode(orderInfo));
-    }
-
     @GetMapping("/{order-id}")
     public OrderVO getByOrderIdentifier(@PathParam("order-id") String orderIdentifier){
         return paymentService.findByOrderIdentifierAndBuildVO(orderIdentifier);
-    }
-
-    @PutMapping("/update-status")
-    public OrderVO updateStatus(@RequestParam("order") String orderIdentifier, @RequestParam("status") String status){
-        return paymentService.updateStatus(orderIdentifier, status);
     }
 }

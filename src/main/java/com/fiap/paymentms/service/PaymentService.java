@@ -6,9 +6,11 @@ import com.fiap.paymentms.exception.NotFoundException;
 import com.fiap.paymentms.exception.PaymentException;
 import com.fiap.paymentms.exception.QrCodeGenerationException;
 import com.fiap.paymentms.model.dto.OrderInfoDTO;
+import com.fiap.paymentms.model.dto.QrCodeDTO;
 import com.fiap.paymentms.model.entities.Payment;
 import com.fiap.paymentms.model.enumerated.PaymentStatus;
 import com.fiap.paymentms.model.vo.OrderVO;
+import com.fiap.paymentms.producer.QrCodeProducer;
 import com.fiap.paymentms.repository.PaymentRepository;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
@@ -33,7 +35,10 @@ public class PaymentService {
     @Autowired
     private PaymentEventPublisher paymentEventPublisher;
 
-    public byte[] generateQrCode(OrderInfoDTO orderInfo){
+    @Autowired
+    private QrCodeProducer qrCodeProducer;
+
+    public void generateQrCode(OrderInfoDTO orderInfo){
         if (!paymentRepository.findByOrderIdentifier(orderInfo.getOrderIdentifier()).isPresent()){
             try{
                 QRCodeWriter qrCodeWriter = new QRCodeWriter();
@@ -43,8 +48,9 @@ public class PaymentService {
 
                 MatrixToImageWriter.writeToStream(bitMatrix, "PNG", outputStream);
                 this.createPayment(orderInfo);
-                paymentEventPublisher.publish(orderInfo.getOrderIdentifier(), PaymentStatus.SUCCESS);
-                return outputStream.toByteArray();
+                paymentEventPublisher.publish(orderInfo.getOrderIdentifier(), PaymentStatus.AWAITING);
+                qrCodeProducer.qrCodeGerado(QrCodeDTO.builder().orderIdentifier(orderInfo.getOrderIdentifier())
+                        .qrCode(outputStream.toByteArray()).build());
             }catch (Exception ex) {
                 throw new QrCodeGenerationException(ex.getMessage());
             }

@@ -1,8 +1,16 @@
 spring:
-  datasource:
-    url: ${URL_BD:jdbc:postgresql://localhost:5432/postgres?currentSchema=sch_payments}
-    username: postgres
-    password: 123
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    port: 5672
+    username: ${RABBIT_USER:guest}
+    password: ${RABBIT_PASS:guest}
+
+queue:
+  gerar_qr_code: gerar_qr_code
+  qr_code_gerado: qr_code_gerado
+  realiza_pagamento: realiza_pagamento
+
+
 
 server:
   port: 9090

@@ -17,6 +17,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -41,8 +42,7 @@ class PaymentControllerTest {
 
     @Test
     void shouldGenerateQrCode() throws Exception {
-        when(paymentService.generateQrCode(any())).thenReturn(new byte[1]);
-
+        doNothing().when(paymentService).generateQrCode(any());
         mockMvc.perform(post(ENDPOINT.concat("/generate/qr-code"))
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON)
