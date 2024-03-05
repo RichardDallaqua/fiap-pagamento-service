@@ -6,11 +6,12 @@ import com.fiap.paymentms.exception.NotFoundException;
 import com.fiap.paymentms.exception.PaymentException;
 import com.fiap.paymentms.exception.QrCodeGenerationException;
 import com.fiap.paymentms.model.dto.OrderInfoDTO;
-import com.fiap.paymentms.model.dto.QrCodeDTO;
+import com.fiap.paymentms.producer.dto.PagamentoConcluidoDTO;
+import com.fiap.paymentms.producer.dto.QrCodeDTO;
 import com.fiap.paymentms.model.entities.Payment;
 import com.fiap.paymentms.model.enumerated.PaymentStatus;
 import com.fiap.paymentms.model.vo.OrderVO;
-import com.fiap.paymentms.producer.QrCodeProducer;
+import com.fiap.paymentms.producer.PagamentoProducer;
 import com.fiap.paymentms.repository.PaymentRepository;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
@@ -36,7 +37,7 @@ public class PaymentService {
     private PaymentEventPublisher paymentEventPublisher;
 
     @Autowired
-    private QrCodeProducer qrCodeProducer;
+    private PagamentoProducer qrCodeProducer;
 
     public void generateQrCode(OrderInfoDTO orderInfo){
         if (!paymentRepository.findByOrderIdentifier(orderInfo.getOrderIdentifier()).isPresent()){
@@ -76,18 +77,22 @@ public class PaymentService {
                 .build();
     }
 
-    public OrderVO updateStatus(String orderIdentifier, String status){
+    public void updateStatus(String orderIdentifier, String status){
         if(PaymentStatus.getByName(status).isEmpty()) {
             throw new PaymentException("Status " + status + " não existente");
         }else{
             Payment payment = this.findPaymentByOrderIdentifier(orderIdentifier);
             if(Stream.of(PaymentStatus.SUCCESS, PaymentStatus.ERROR, PaymentStatus.REFUSED).anyMatch(x -> x.name().equalsIgnoreCase(payment.getPaymentStatus()))) {
-                throw new PaymentException("Não foi possível alterar o status do pagamento");
+                PagamentoConcluidoDTO.builder()
+                        .orderIdentifier(payment.getOrderIdentifier())
+                        .status(PaymentStatus.ERROR.name())
+                        .build();
             }
             payment.setPaymentStatus(PaymentStatus.getByName(status).get().name());
             paymentRepository.save(payment);
-            return OrderVO.builder().orderIdentifier(payment.getOrderIdentifier()).paymentStatus(payment.getPaymentStatus())
-                    .items(payment.getItems()).title(payment.getTitle()).totalAmount(payment.getTotalAmount())
+            PagamentoConcluidoDTO.builder()
+                    .orderIdentifier(payment.getOrderIdentifier())
+                    .status(PaymentStatus.SUCCESS.name())
                     .build();
         }
     }
