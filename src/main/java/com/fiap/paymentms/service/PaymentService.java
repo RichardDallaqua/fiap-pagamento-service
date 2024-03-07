@@ -34,10 +34,7 @@ public class PaymentService {
     private PaymentRepository paymentRepository;
 
     @Autowired
-    private PaymentEventPublisher paymentEventPublisher;
-
-    @Autowired
-    private PagamentoProducer qrCodeProducer;
+    private PagamentoProducer pagamentoProducer;
 
     public void generateQrCode(OrderInfoDTO orderInfo){
         if (!paymentRepository.findByOrderIdentifier(orderInfo.getOrderIdentifier()).isPresent()){
@@ -49,8 +46,7 @@ public class PaymentService {
 
                 MatrixToImageWriter.writeToStream(bitMatrix, "PNG", outputStream);
                 this.createPayment(orderInfo);
-                paymentEventPublisher.publish(orderInfo.getOrderIdentifier(), PaymentStatus.AWAITING);
-                qrCodeProducer.qrCodeGerado(QrCodeDTO.builder().orderIdentifier(orderInfo.getOrderIdentifier())
+                pagamentoProducer.qrCodeGerado(QrCodeDTO.builder().orderIdentifier(orderInfo.getOrderIdentifier())
                         .qrCode(outputStream.toByteArray()).build());
             }catch (Exception ex) {
                 throw new QrCodeGenerationException(ex.getMessage());
@@ -83,20 +79,20 @@ public class PaymentService {
         }else{
             Payment payment = this.findPaymentByOrderIdentifier(orderIdentifier);
             if(Stream.of(PaymentStatus.SUCCESS, PaymentStatus.ERROR, PaymentStatus.REFUSED).anyMatch(x -> x.name().equalsIgnoreCase(payment.getPaymentStatus()))) {
-                PagamentoConcluidoDTO.builder()
-                        .orderIdentifier(payment.getOrderIdentifier())
-                        .status(PaymentStatus.ERROR.name())
-                        .build();
+               pagamentoProducer.pagamentoConcluido( PagamentoConcluidoDTO.builder()
+                       .orderIdentifier(payment.getOrderIdentifier())
+                       .status(PaymentStatus.ERROR.name())
+                       .build());
             }
+
             payment.setPaymentStatus(PaymentStatus.getByName(status).get().name());
             paymentRepository.save(payment);
-            PagamentoConcluidoDTO.builder()
+            pagamentoProducer.pagamentoConcluido(PagamentoConcluidoDTO.builder()
                     .orderIdentifier(payment.getOrderIdentifier())
                     .status(PaymentStatus.SUCCESS.name())
-                    .build();
+                    .build());
         }
     }
-
 
     private Payment findPaymentByOrderIdentifier(String orderIdentifier){
         return paymentRepository.findByOrderIdentifier(orderIdentifier).orElseThrow(() -> new NotFoundException("Não foi possível localizar o registro"));
