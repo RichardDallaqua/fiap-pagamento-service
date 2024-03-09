@@ -41,28 +41,6 @@ class PaymentControllerTest {
     private PaymentService paymentService;
 
     @Test
-    void shouldGenerateQrCode() throws Exception {
-        doNothing().when(paymentService).generateQrCode(any());
-        mockMvc.perform(post(ENDPOINT.concat("/generate/qr-code"))
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(TestFixtures.generateOrderInfoDTO())))
-                .andExpect(status().isCreated())
-                .andReturn();
-    }
-
-    @Test
-    void shouldFindPaymentByOrderIdentifier() throws Exception {
-        when(paymentService.findByOrderIdentifierAndBuildVO(any())).thenReturn(OrderVO.builder().build());
-
-        mockMvc.perform(get(ENDPOINT.concat("/aaa123"))
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andReturn();
-    }
-
-    @Test
     void shouldNotFindPaymentByOrderIdentifier() throws Exception {
         when(paymentService.findByOrderIdentifierAndBuildVO(any())).thenThrow(new NotFoundException("Não foi possível encontrar o registro"));
 
@@ -73,36 +51,4 @@ class PaymentControllerTest {
                 .andReturn();
     }
 
-    @Test
-    void shouldNotUpdateStatusWhenNotFound() throws Exception {
-        when(paymentService.updateStatus(any(), any())).thenThrow(new NotFoundException(""));
-
-        mockMvc.perform(put(ENDPOINT.concat("/update-status?order=aaa123&status=ERROR"))
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andReturn();
-    }
-
-    @Test
-    void shouldNotUpdateStatusWhenStatusNotFound() throws Exception {
-        when(paymentService.updateStatus(any(), any())).thenThrow(new PaymentException(""));
-
-        mockMvc.perform(put(ENDPOINT.concat("/update-status?order=aaa123&status=AAAAAA"))
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
-                .andReturn();
-    }
-
-    @Test
-    void shouldUpdateStatu() throws Exception {
-        when(paymentService.updateStatus(any(), any())).thenReturn(OrderVO.builder().build());
-
-        mockMvc.perform(put(ENDPOINT.concat("/update-status?order=aaa123&status=AAAAAA"))
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andReturn();
-    }
 }

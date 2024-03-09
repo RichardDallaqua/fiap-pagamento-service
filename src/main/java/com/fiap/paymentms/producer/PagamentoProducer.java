@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -20,12 +21,19 @@ public class PagamentoProducer {
     @Autowired
     private Queue queue;
 
+    @Value("${queue02.qr_code_gerado}")
+    private String qrCodeGeradoQueue;
+
+    @Value("${queue04.pagamento_concluido}")
+    private String pagamentoConcluidoQueue;
+
+
     public void qrCodeGerado(QrCodeDTO qrCode) {
-        rabbitTemplate.convertAndSend("qr_code_gerado", toQrCodeMessage(qrCode));
+        rabbitTemplate.convertAndSend(qrCodeGeradoQueue, toQrCodeMessage(qrCode));
     }
 
     public void pagamentoConcluido(PagamentoConcluidoDTO pagamentoConcluidoDTO){
-        rabbitTemplate.convertAndSend("pagamento_concluido", toPagamentoConcluidoMessage(pagamentoConcluidoDTO));
+        rabbitTemplate.convertAndSend(pagamentoConcluidoQueue, toPagamentoConcluidoMessage(pagamentoConcluidoDTO));
     }
 
     public static String toQrCodeMessage(QrCodeDTO qrCode){
