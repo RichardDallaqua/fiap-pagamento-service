@@ -6,9 +6,12 @@ import com.fiap.paymentms.exception.NotFoundException;
 import com.fiap.paymentms.exception.PaymentException;
 import com.fiap.paymentms.exception.QrCodeGenerationException;
 import com.fiap.paymentms.model.dto.OrderInfoDTO;
+import com.fiap.paymentms.producer.dto.PagamentoConcluidoDTO;
+import com.fiap.paymentms.producer.dto.QrCodeDTO;
 import com.fiap.paymentms.model.entities.Payment;
 import com.fiap.paymentms.model.enumerated.PaymentStatus;
 import com.fiap.paymentms.model.vo.OrderVO;
+import com.fiap.paymentms.producer.PagamentoProducer;
 import com.fiap.paymentms.repository.PaymentRepository;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
@@ -31,9 +34,9 @@ public class PaymentService {
     private PaymentRepository paymentRepository;
 
     @Autowired
-    private PaymentEventPublisher paymentEventPublisher;
+    private PagamentoProducer pagamentoProducer;
 
-    public byte[] generateQrCode(OrderInfoDTO orderInfo){
+    public void generateQrCode(OrderInfoDTO orderInfo){
         if (!paymentRepository.findByOrderIdentifier(orderInfo.getOrderIdentifier()).isPresent()){
             try{
                 QRCodeWriter qrCodeWriter = new QRCodeWriter();
@@ -43,8 +46,8 @@ public class PaymentService {
 
                 MatrixToImageWriter.writeToStream(bitMatrix, "PNG", outputStream);
                 this.createPayment(orderInfo);
-                paymentEventPublisher.publish(orderInfo.getOrderIdentifier(), PaymentStatus.SUCCESS);
-                return outputStream.toByteArray();
+                pagamentoProducer.qrCodeGerado(QrCodeDTO.builder().orderIdentifier(orderInfo.getOrderIdentifier())
+                        .qrCode(outputStream.toByteArray()).build());
             }catch (Exception ex) {
                 throw new QrCodeGenerationException(ex.getMessage());
             }
@@ -70,22 +73,26 @@ public class PaymentService {
                 .build();
     }
 
-    public OrderVO updateStatus(String orderIdentifier, String status){
+    public void updateStatus(String orderIdentifier, String status){
         if(PaymentStatus.getByName(status).isEmpty()) {
             throw new PaymentException("Status " + status + " não existente");
         }else{
             Payment payment = this.findPaymentByOrderIdentifier(orderIdentifier);
             if(Stream.of(PaymentStatus.SUCCESS, PaymentStatus.ERROR, PaymentStatus.REFUSED).anyMatch(x -> x.name().equalsIgnoreCase(payment.getPaymentStatus()))) {
-                throw new PaymentException("Não foi possível alterar o status do pagamento");
+               pagamentoProducer.pagamentoConcluido( PagamentoConcluidoDTO.builder()
+                       .orderIdentifier(payment.getOrderIdentifier())
+                       .status(PaymentStatus.ERROR.name())
+                       .build());
             }
+
             payment.setPaymentStatus(PaymentStatus.getByName(status).get().name());
             paymentRepository.save(payment);
-            return OrderVO.builder().orderIdentifier(payment.getOrderIdentifier()).paymentStatus(payment.getPaymentStatus())
-                    .items(payment.getItems()).title(payment.getTitle()).totalAmount(payment.getTotalAmount())
-                    .build();
+            pagamentoProducer.pagamentoConcluido(PagamentoConcluidoDTO.builder()
+                    .orderIdentifier(payment.getOrderIdentifier())
+                    .status(PaymentStatus.SUCCESS.name())
+                    .build());
         }
     }
-
 
     private Payment findPaymentByOrderIdentifier(String orderIdentifier){
         return paymentRepository.findByOrderIdentifier(orderIdentifier).orElseThrow(() -> new NotFoundException("Não foi possível localizar o registro"));
