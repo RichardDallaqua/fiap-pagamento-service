@@ -1,4 +1,4 @@
-# FIAP Lanchonete Service
+# FIAP Pagamento Service
 
 O FIAP pagamento service é um projeto escrito em Java que simula os pagamentos de um pedido gerado por um outro MS de uma lanchonete. Ele oferece a funcionalidade para pagamentos de pedido.
 
