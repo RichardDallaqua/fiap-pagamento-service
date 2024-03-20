@@ -26,14 +26,14 @@ public class PagamentoConsumer {
     @Autowired
     private Gson gson;
 
-    @RabbitListener(queues = {"${queue01.gerar_qr_code}"})
+    @RabbitListener(queues = {"${queues.gerar_qr_code}"})
     public void receiveQrCode(@Payload String message){
         HashMap<String, String> mensagem = gson.fromJson(message, HashMap.class);
         OrderInfoDTO orderInfo = fromMessageToOrderInfoDTO(mensagem);
         paymentService.generateQrCode(orderInfo);
     }
 
-    @RabbitListener(queues = {"${queue03.realiza_pagamento}"})
+    @RabbitListener(queues = {"${queues.realiza_pagamento}"})
     public void receivePagamento(@Payload String message){
         HashMap<String, String> mensagem = gson.fromJson(message, HashMap.class);
         RealizaPagamentoDTO realizaPagamentoDTO = fromMessageToRealizaPagamentoDTO(mensagem);

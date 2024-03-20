@@ -20,13 +20,10 @@ public class PagamentoProducer {
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
-    @Autowired
-    private Queue queue;
-
-    @Value("${queue02.qr_code_gerado}")
+    @Value("${queues.qr_code_gerado}")
     private String qrCodeGeradoQueue;
 
-    @Value("${queue04.pagamento_concluido}")
+    @Value("${queues.pagamento_concluido}")
     private String pagamentoConcluidoQueue;
 
 
