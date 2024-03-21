@@ -69,7 +69,7 @@ public class PaymentService {
     public OrderVO findByOrderIdentifierAndBuildVO(String orderIdentifier){
         Payment payment = this.findPaymentByOrderIdentifier(orderIdentifier);
         return OrderVO.builder().orderIdentifier(payment.getOrderIdentifier()).paymentStatus(payment.getPaymentStatus())
-                .items(payment.getItems()).title(payment.getTitle()).totalAmount(payment.getTotalAmount())
+                .title(payment.getTitle()).totalAmount(payment.getTotalAmount())
                 .build();
     }
 
@@ -103,7 +103,7 @@ public class PaymentService {
         payment.setOrderIdentifier(orderInfo.getOrderIdentifier());
         payment.setPaymentStatus(PaymentStatus.AWAITING.name());
         payment.setTitle(orderInfo.getTitle());
-        payment.setItems(orderInfo.getItems());
+        payment.setItems(orderInfo.getItems().toString());
         payment.setTotalAmount(orderInfo.getTotalAmount());
         paymentRepository.save(payment);
     }

@@ -8,7 +8,7 @@ import java.util.List;
 
 @Data
 @Entity
-@Table(name = "payment")
+@Table(schema = "sch_payments", name = "payment")
 public class Payment {
 
     @Id
@@ -17,7 +17,7 @@ public class Payment {
 
     private String title;
 
-    private List<String> items;
+    private String items;
 
     private BigDecimal totalAmount;
 
